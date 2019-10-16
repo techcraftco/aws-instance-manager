@@ -1,0 +1,101 @@
+Parameters:
+    AmiId:
+        Type: AWS::EC2::Image::Id
+    KeyPair:
+        Type: AWS::EC2::KeyPair::KeyName
+        
+Resources:
+
+    vpc:
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: 10.0.0.0/16
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            Tags:
+                -
+                 Key: Name
+                 Value: !Sub "${AWS::StackName}"
+                 
+    subnet:
+        Type: AWS::EC2::Subnet
+        Properties:
+            CidrBlock: 10.0.0.0/24
+            AvailabilityZone: !Sub "${AWS::Region}a"
+            MapPublicIpOnLaunch: true
+            VpcId: !Ref vpc
+            Tags:
+                -
+                  Key: Name
+                  Value: !Sub "${AWS::StackName}-public"
+                  
+    igw:
+        Type: AWS::EC2::InternetGateway
+        Properties:
+            Tags:
+                -
+                  Key: Name
+                  Value: !Sub "${AWS::StackName}-public"
+                  
+    igwAttach:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            VpcId: !Ref vpc
+            InternetGatewayId: !Ref igw
+
+    routeTable:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId: !Ref vpc
+            Tags:
+                -
+                  Key: Name
+                  Value: !Sub "${AWS::StackName}-public"
+                  
+    routePublic:
+        Type: AWS::EC2::Route
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref igw
+            RouteTableId: !Ref routeTable
+            
+    subnetRouteTable:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            RouteTableId: !Ref routeTable
+            SubnetId: !Ref subnet
+            
+    securityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: !Sub "Security for ${AWS::StackName}"
+            GroupName: !Sub "${AWS::StackName}-public"
+            VpcId: !Ref vpc
+            SecurityGroupIngress:
+                - 
+                  IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: 0.0.0.0/0
+    
+    instance:
+        Type: AWS::EC2::Instance
+        Properties:
+            KeyName: !Ref KeyPair
+            ImageId: !Ref AmiId
+            InstanceType: t2.micro
+            SubnetId: !Ref subnet
+            SecurityGroupIds:
+                - !Ref securityGroup
+            Tags:
+                -
+                  Key: Name
+                  Value: !Sub "${AWS::StackName}"
+
+Outputs:
+    instanceDnsName:
+        Value: !GetAtt instance.PublicDnsName
+        Export:
+            Name: !Sub "${AWS::StackName}-dns-name"
+            
+            
