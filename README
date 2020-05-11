@@ -1,3 +1,3 @@
 Basic utilities for managing a CloudFormation stack from within Pythonista on the iPad.
 
-You need a file called `config.yml` in the same directory as this one containing your AWS configuration such as access key ID, secret key, AMI ID, keypair name and region. See `config.yml.example’ for an example.
+You need a `config.yml` file in the same directory as the `manage.py` script. This config file contains your AWS configuration such as access key ID, secret key, AMI ID, keypair name and region. See `config.yml.example’ for an example.
