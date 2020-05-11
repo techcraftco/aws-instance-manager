@@ -1,0 +1,6 @@
+aws_access_key_id: <you_aws_access_id>
+aws_secret_access_key: <your_aws_secret_key>
+region_name: eu-west-2
+stack_name: ubuntu-instance
+ami_id: ami-0be057a22c63962cb
+key_pair: <your_keypair_name>
